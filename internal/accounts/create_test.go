@@ -60,6 +60,19 @@ func TestAccountsCreate(t *testing.T) {
 		tests.NewAccountCreateResult(newAddress), nil,
 	)
 
+	// assign package level flags here
+	createFlags = flagsCreate{
+		Signer:    "emulator-account",
+		Keys:      []string{},
+		SigAlgo:   "ECDSA_P256",
+		HashAlgo:  "SHA3_256",
+		Contracts: nil,
+		Include:   []string{"contracts"},
+	}
+
+	// reset flags
+	defer func() { createFlags = flagsCreate{} }()
+
 	res, err := create(nil, nil, command.GlobalFlags{}, services, state)
 
 	assert.NoError(t, err)
@@ -70,11 +83,12 @@ func TestAccountsCreate(t *testing.T) {
 	bytes, err := json.Marshal(out)
 	assert.NoError(t, err)
 	account := struct {
-		Address string `json:"address"`
+		Address string            `json:"address"`
+		Code    map[string]string `json:"code"`
 	}{}
 	err = json.Unmarshal(bytes, &account)
 	assert.NoError(t, err)
 
-	// confirm the address is the one we created in our mock gateway
+	// confirm the address is the one we created in our mock gateway response
 	assert.Equal(t, account.Address, newAddress.Hex())
 }
